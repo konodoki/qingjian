@@ -87,13 +87,13 @@ Windows 上中 / 英的切换键可以勾选（设置 → 通用，配置 `[shor
 
 ## 译词与删除候选
 
-| 操作 | macOS | Windows |
-|---|---|---|
-| 上屏第 N 个候选的第一条译词 | `⌥ + 数字` | `Ctrl + 数字` |
-| 上屏第二条译词（候选右侧有两条时） | `⇧⌥ + 数字` | `Ctrl + Shift + 数字` |
-| 删除第 N 个候选 | `⇧ + 数字` | `Shift + 数字` |
+| 操作 | macOS | Windows | Linux |
+|---|---|---|---|
+| 上屏第 N 个候选的第一条译词 | `⌥ + 数字` | `Ctrl + 数字` | `Alt + 数字` |
+| 上屏第二条译词（词条有第二条时） | `⇧⌥ + 数字` | `Ctrl + Shift + 数字` | `Alt + Shift + 数字` |
+| 删除第 N 个候选 | `⇧ + 数字` | `Shift + 数字` | `Shift + 数字` |
 
-仅在输入拼音时有效。三组修饰键在「偏好设置 → 快捷键」（Windows：「设置 → 快捷键」）录制修改；
+仅在组句时有效。三组修饰键在 macOS「偏好设置 → 快捷键」或 Windows「设置 → 快捷键」录制修改；Linux 在配置文件的 `[shortcut]` 中修改。
 macOS 上应避开 `⌃ + 数字`（系统切换桌面）与 `⌘ + 数字`（应用切换标签页），Windows 上 `Alt + 数字` 会被应用作为菜单快捷键截获。
 删除候选的说明见 [译词与生词](../learning/translation.md#删除不需要的候选)。
 
@@ -139,6 +139,5 @@ Linux 的 `Tab` 规则：没有组句时 `Tab` / `Shift + Tab` 交给应用；�
 大千注音（`[general] scheme = "zhuyin"`）下，数字及 `- ; , . /` 输入符号和声调，空格补一声，再按空格可选词；
 `Enter` 选高亮，`Shift + Enter` 原样输出注音。
 
-Linux 缺省 `Alt + 数字` / `Alt + Shift + 数字` 上屏第一 / 第二条译词，`Shift + 数字` 删除候选，
-可在配置文件 `[shortcut]` 修改。安装与配置位置见 [Linux](linux.md)。
+Linux 的直接输出译词、删除候选快捷键见上表；安装与配置位置见 [Linux](linux.md)。
 选中应用文字后按 `Alt + Shift + T` 可调用云翻译；Fcitx5 需要应用提供选区，Fcitx4 在 X11 下还可读取当前应用的系统选区。快捷键可用 `[shortcut] translate_selection` 修改。
