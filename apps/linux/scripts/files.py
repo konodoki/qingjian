@@ -38,10 +38,10 @@ def main():
                 print(f'保留已修改文件：{path}')
         manifest.unlink(missing_ok=True)
         return
-    if len(args) not in (4, 5):
-        raise SystemExit('install 需要仓库、服务、插件、样例标记及可选框架版本')
-    root, server, plugin, sample = args[:4]
-    flavor = args[4] if len(args) == 5 else 'fcitx5'
+    if len(args) not in (5, 6):
+        raise SystemExit('install 需要仓库、服务、设置程序、插件、样例标记及可选框架版本')
+    root, server, settings, plugin, sample = args[:5]
+    flavor = args[5] if len(args) == 6 else 'fcitx5'
     if flavor not in ('fcitx4', 'fcitx5'):
         raise SystemExit('框架版本必须是 fcitx4 或 fcitx5')
     root = Path(root)
@@ -50,8 +50,13 @@ def main():
         raise SystemExit('XDG_DATA_HOME 必须是绝对路径')
     files = {prefix / 'share/licenses/qingjian/LICENSE': root / 'LICENSE',
              prefix / 'share/licenses/qingjian/LICENSE-CNS11643.txt': root / 'assets/stroke/LICENSE-CNS11643.txt',
-             data / 'icons/hicolor/128x128/apps/qingjian.png': root / 'assets/icon/logo.png',
-             prefix / 'bin/qingjian-linux-server': Path(server)}
+             prefix / 'bin/qingjian-linux-server': Path(server),
+             prefix / 'bin/qingjian-settings': Path(settings),
+             data / 'applications/qingjian-settings.desktop': root / 'apps/settings/linux/qingjian-settings.desktop'}
+    # 托盘按名义尺寸挑图，目录名与像素必须一致：源图 1024px 不能直接装进 128x128（#547）。
+    for size in (16, 22, 24, 32, 48, 64, 128, 256):
+        files[data / f'icons/hicolor/{size}x{size}/apps/qingjian.png'] = (
+            root / f'assets/icon/linux/hicolor/{size}x{size}/apps/qingjian.png')
     if flavor == 'fcitx4':
         config = Path(os.environ.get('XDG_CONFIG_HOME', str(Path.home() / '.config')))
         if not config.is_absolute():
@@ -66,7 +71,7 @@ def main():
         for kind in ('addon', 'inputmethod'):
             files[data / f'fcitx5/{kind}/qingjian.conf'] = root / f'apps/linux/fcitx5/data/{kind}/qingjian.conf'
     resources = prefix / 'share/qingjian/resources'
-    for kind in ('sample', 'glossary', 'levels', 'emoji'):
+    for kind in ('sample', 'glossary', 'levels', 'emoji', 'wubi'):
         for source in (root / 'assets' / kind).rglob('*'):
             if source.is_file():
                 files[resources / source.relative_to(root)] = source
@@ -120,6 +125,8 @@ def main():
             temporary.write_text(temporary.read_text().replace('Library=qingjian\n', f'Library={prefix}/lib/fcitx5/qingjian\n'))
         elif flavor == 'fcitx4' and target == config / 'fcitx/addon/fcitx-qingjian.conf':
             temporary.write_text(temporary.read_text().replace('Library=fcitx-qingjian.so\n', f'Library={prefix}/lib/fcitx/fcitx-qingjian.so\n'))
+        if target == data / 'applications/qingjian-settings.desktop':
+            temporary.write_text(temporary.read_text().replace('Exec=qingjian-settings\n', f'Exec={prefix}/bin/qingjian-settings\n'))
         temporary.replace(target)
         installed[str(target)] = digest(target)
     for filename, checksum in old.items():

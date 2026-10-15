@@ -160,7 +160,7 @@ bool QingjianEngine::connect(InputContext *context) {
         if (!shared_->flush()) throw std::runtime_error("close exchange");
         session->generation = shared_->generation;
         nlohmann::json response;
-        if (!shared_->connection.send({{"OpenSession", {{"session", session->id}, {"app", context->program()}, {"protocol", 7}}}}, &response)
+        if (!shared_->connection.send({{"OpenSession", {{"session", session->id}, {"app", context->program()}, {"protocol", 9}}}}, &response)
             || response.at("Update").at("session") != session->id
             || response.at("Update").at("linux_ui").at("version") != 3)
             throw std::runtime_error("protocol mismatch");
@@ -247,28 +247,26 @@ bool QingjianEngine::exchange(InputContext *context, const nlohmann::json &event
             throw std::runtime_error("response identity");
         consumed = outcome == "Consumed";
         session->displayIdentity = identity;
-        // 显示 API 可同步重入能力 / 焦点 / Reset 事件。提交前再核对生命周期，
-        // 撤销旧上下文结果时仍保留 Consumed，防止选词键再次透传。
-        bool validDisplayFailure = false;
-        if (display) {
-            try { render(context, result.at("frame")); }
-            catch (const std::exception &) {
-                if (watched.get()) {
-                    validDisplayFailure = session->displayIdentity == identity;
-                    disconnectAll();
-                }
-            }
-        }
-        if (watched.get() && session->generation == generation && session->lifecycle == lifecycle
-            && context->hasFocus() == focused && context->capabilityFlags() == capabilities
-            && (session->displayIdentity == identity || validDisplayFailure) && commit.is_string()) {
+        // 上屏先于清空预编辑，避免 Chromium 原生 Wayland 重复上屏（#213）。
+        // 上屏回调也可重入；只允许仍属于本帧的上下文继续重画。
+        const auto revision = session->revision;
+        auto current = [&] {
+            return watched.get() && session->opened && session->generation == generation
+                && session->lifecycle == lifecycle && session->revision == revision
+                && session->displayIdentity == identity && context->hasFocus() == focused
+                && context->capabilityFlags() == capabilities;
+        };
+        if (commit.is_string() && current()) {
             const auto &nearby = context->surroundingText();
             if (session->selectionText.empty() || (nearby.isValid()
                 && nearby.selectedText() == session->selectionText
-                && nearby.cursor() == session->selectionCursor && nearby.anchor() == session->selectionAnchor))
+                && nearby.cursor() == session->selectionCursor && nearby.anchor() == session->selectionAnchor)) {
+                session->selectionText.clear();
                 context->commitString(commit.get<std::string>());
+            }
         }
-        if (result.at("frame").at("candidates").at("items").empty()) session->selectionText.clear();
+        if (current() && result.at("frame").at("candidates").at("items").empty()) session->selectionText.clear();
+        if (display && current()) render(context, result.at("frame"));
         return outcome == "Consumed";
     } catch (const std::exception &) { disconnectAll(); return consumed; }
 }
@@ -360,7 +358,7 @@ void QingjianEngine::render(InputContext *context, const nlohmann::json &frame) 
             if (!annotation.empty()) senses.push_back({index, 0});
             if (sense.value("fresh", false)) annotation += " · 生";
         }
-        if (item.at("kind") == "Cloud") annotation = "☁ " + annotation;
+        if (item.value("kind", "Local") == "Cloud") annotation = "☁ " + annotation;
         list->append(std::make_unique<qingjian::Word>(text, annotation, [this, alive = alive_, watched, index, revision, identity](InputContext *ic) {
             if (*alive && ic && ic == watched.get() && ic->hasFocus() && ic->propertyFor(&sessions_)->revision == revision)
                 exchange(ic, {{"Candidate", {{"identity", identity}, {"index", index}}}});
@@ -377,7 +375,8 @@ void QingjianEngine::render(InputContext *context, const nlohmann::json &frame) 
     session->clientPreedit = inlinePreedit && !preedit.empty();
     if (!items.empty()) panel.setCandidateList(std::move(list));
     std::string aux;
-    if (frame.at("sentence").is_string()) aux = "☁ " + frame.at("sentence").get<std::string>() + " · Tab";
+    if (auto sentence = frame.find("sentence"); sentence != frame.end() && sentence->is_string())
+        aux = "☁ " + sentence->get<std::string>() + " · Tab";
     if (frame.at("notice").is_string()) {
         if (!aux.empty()) aux += " · ";
         aux += frame.at("notice").get<std::string>();
@@ -438,8 +437,8 @@ void QingjianEngine::poll() {
         // 版本号没动：帧内容没变，不重画也不重复回报。
         if (revision == shown) return;
         session->displayIdentity = identity;
-        render(context, update.at("frame"));
         if (update.at("frame").at("candidates").at("items").empty()) session->selectionText.clear();
+        render(context, update.at("frame"));
     } catch (const std::exception &) { disconnectAll(); }
 }
 }

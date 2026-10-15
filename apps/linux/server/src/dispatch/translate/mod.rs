@@ -100,7 +100,7 @@ impl Router {
             page_count: 1,
             preedit_mode: self.config.preedit,
             layout: self.config.layout,
-            theme: self.config.theme,
+            appearance: self.config.appearance,
             ..Frame::default()
         }
     }

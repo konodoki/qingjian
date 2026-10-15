@@ -44,7 +44,9 @@ impl Router {
         self.notice = None;
         self.sentence = None;
         self.focused = Some(session);
-        if next.active && !next.private {
+        if self.composed.is_none() && !self.engine.composition().is_empty() {
+            self.recompose(None);
+        } else if next.active && !next.private {
             self.request_current_prediction();
         }
     }

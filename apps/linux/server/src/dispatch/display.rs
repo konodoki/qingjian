@@ -61,7 +61,7 @@ impl Router {
         }
         match &response {
             ServerMessage::KeyResult { session, frame, .. }
-            | ServerMessage::Update { session, frame } => {
+            | ServerMessage::Update { session, frame, .. } => {
                 let polled = matches!(response, ServerMessage::Update { .. });
                 let info = self.sessions.get_mut(session)?;
                 if let Some(identity) = &mut info.display_identity {

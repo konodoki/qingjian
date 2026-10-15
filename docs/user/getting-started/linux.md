@@ -6,7 +6,7 @@ description: 在 Linux 上安装青简，使用 Fcitx4 或 Fcitx5 默认候选�
 
 青简 Linux 使用系统默认候选面板。Fcitx5 提供 Ubuntu 26.04 预编译包和源码安装；Fcitx4 提供 Ubuntu 22.04 源码安装。
 Fcitx5 已验证 Ubuntu 26.04 的 GNOME 桌面（Wayland）上 GTK4、Qt6 应用与 Firefox；Fcitx4 已验证 Ubuntu 22.04 的 GTK3 文本框输入，以及 X11 下 Chrome 输入框的选中文字翻译与替换。
-当前支持本地候选、学习、本地整句模型重排和可选云联想，暂不提供设置窗口或自动启动。
+当前支持本地候选、学习、本地整句模型重排和可选云联想，提供青简设置程序，暂不自动启动。
 
 ## Ubuntu 22.04：Fcitx4 源码安装
 
@@ -87,16 +87,45 @@ apps/linux/scripts/install.sh
 重启 Fcitx5，打开 Fcitx5 配置工具，取消「仅显示当前语言」，添加「青简」。切换到青简后输入 `nihao`，空格选中「你好」。
 单击 `Shift` 切换中英；按键规则见 [按键与快捷键](keys.md) 的 Linux 部分。关闭手动启动的终端会结束青简服务；下次登录后需再次启动。
 
+## 翻页键
+
+中文组句时，默认用 `[` / `]` 上一页 / 下一页，也可用 `PageUp` / `PageDown`；`Shift + Tab` 上一页，`Tab` 在没有整句补全时下一页，有补全时接受补全。
+英文组句中的 `Tab` 是选中高亮候选，不是翻页；完整规则见 [按键与快捷键](keys.md)。
+
+要换成 `-` / `=`，编辑 `~/.config/qingjian/config.toml` 中已有的 `[general]` 分节，保存后约一秒内生效：
+
+```toml
+[general]
+page_keys = "-="
+```
+
+可选 `"[]"`、`",."`、`"-="`，前一个字符上一页，后一个下一页。不要重复添加 `[general]` 分节。
+青简使用这项配置处理候选翻页，修改 Fcitx5 的全局候选翻页热键不会替代它。
+选择 `",."` 后，中文组句中的逗号、句号用于翻页；选择 `"-="` 后，中文组句中的 `-` 用于翻页，不再进入英文直输段。
+这里匹配的是输入字符，`Shift + -` 的 `_` 和 `Shift + =` 的 `+` 不属于 `"-="`。
+已经进入英文直输段时，`-` 原样追加，不用于翻页。
+
 ## 配置、隐私和数据
 
-首次运行生成 `~/.config/qingjian/config.toml`，修改后重启青简服务。
+首次运行生成 `~/.config/qingjian/config.toml`，保存后约一秒内生效，不用重启；`[general] preedit` 与 `[general] input_log` 例外，改完要重启青简服务。
 `[general] preedit` 可设为 `both`（行内和候选窗口）、`inline`（只在行内）、`window`（只在候选窗口）；应用不支持行内显示时使用候选窗口。
 每页候选数、翻页键、学习、日志和辅助语言使用同一配置文件。`learning_language = "off"` 关闭中文候选的辅助语言释义与生词标记。系统面板外观由当前使用的 Fcitx 设置控制。
 输入拼音时按 `Alt + 1` 至 `9`，可直接上屏当前页对应候选的第一条译词；词条有第二条时按 `Alt + Shift + 1` 至 `9`。例如输入 `nihao`，候选「你好」旁显示 `hello` 时按 `Alt + 1`，会直接输出 `hello`。这项功能不需要开启云联想。
+
 当前预编译包随附含章·通变与含章·知微：优先用通变处理拼音整句与纠错，没有通变时回退到知微。自己的 `.qjm` 也可放入 `~/.local/share/qingjian/models/` 下对应的模型目录。`[model] enabled = false` 可关闭本地模型，见 [本地整句模型](../input/local-model.md)。
 
 `[general] shift_letter = "compose"` 让 Shift 大写字母参与中文组句，默认 `"passthrough"` 保持临时英文输入。
-`scheme = "zhuyin"` 启用大千注音；双拼下 `Shift + V` / `Shift + U` 可进入表达式 / 码点输入。
+Linux 支持与 Windows 相同的输入方案：全拼、八套双拼、大千注音、86 版五笔，以及拼音方案与五笔混输。在配置文件的 `[general]` 下设置：
+
+```toml
+[general]
+scheme = "pinyin" # 全拼；也可填 xiaohe、ziranma、microsoft、sogou、abc、xiaolang、shoudao、jiajia、zhuyin、none
+wubi = ""        # 填 wubi86 开启五笔
+```
+
+只用五笔时设 `scheme = "none"`、`wubi = "wubi86"`；拼音与五笔混输时设 `scheme = "pinyin"`、`wubi = "wubi86"`，也可把 `pinyin` 换成双拼或注音方案。保存后约一秒内生效；替换码表文件后需重启服务。安装包自带五笔码表；若要使用自己的码表，把 `词<Tab>编码<Tab>词频` 格式的文件放在 `~/.local/share/qingjian/wubi/wubi86.tsv`，它会优先于随包码表加载。路径使用 `XDG_DATA_HOME` 时随之变化。方案和混输规则见[模糊音与输入方案](../input/fuzzy-and-shuangpin.md)。
+
+双拼下 `Shift + V` / `Shift + U` 可进入表达式 / 码点输入。
 数字没有对应候选时继续输入，英文直输内容以空格结束时保留空格；英文候选开启后可用数字、翻页键、空格或 Tab 选词。
 具体规则见 [按键与快捷键](keys.md) 的 Linux 部分。
 
@@ -107,7 +136,7 @@ Fcitx5 识别为敏感输入时，可以组句但不会保存输入文本或学�
 
 ## 可选：开启云联想
 
-云联想默认关闭。在 `~/.config/qingjian/config.toml` 的 `[predict]` 段填写服务地址、模型和密钥，并将 `enabled` 改为 `true`；也可在启动青简服务前设置 `QINGJIAN_API_KEY` 环境变量。修改后重启 `qingjian-linux-server`。例如：
+云联想默认关闭。在 `~/.config/qingjian/config.toml` 的 `[predict]` 段填写服务地址、模型和密钥，并将 `enabled` 改为 `true`；也可在启动青简服务前设置 `QINGJIAN_API_KEY` 环境变量。保存后约一秒内生效。例如：
 
 ```toml
 [predict]
@@ -119,8 +148,8 @@ api_key = "你的 API 密钥"
 
 组句中的云联想请求包含正在输入的拼音和本地候选。应用支持提供周围文字时，还可能附带光标前后各最多 80 个字（选中文字除外）；不支持的应用只发送拼音和候选。云端词显示在第一页末尾并带 ☁ 标记，整句补全显示在候选面板的辅助行，按 `Tab` 接受。选中应用文字后按 `Alt + Shift + T` 可翻译；Fcitx4 在 X11 中也能从当前应用的系统选区读取文字。`Enter`、空格或 `1` 用译文替换，`Esc` 保留原文。青简只向配置的服务地址发请求。
 Wayland 原生应用须向 Fcitx5 提供选区才能使用选中文字翻译；X11 的备用读取不适用于 Wayland 原生应用。
-已有配置文件如果仍明确写着旧快捷键，请改为 `translate_selection = "alt+shift+t"` 后重启青简服务；安装更新不会覆盖已有的明确设置。
-Fcitx5 声明为私密的输入框和密码框不会发云请求；Fcitx4 只能识别密码框标记，其他未标记的敏感输入框无法自动识别，使用云联想时请留意。Linux 暂无配置热加载和云端译词自动补充。
+已有配置文件如果仍明确写着旧快捷键，请改为 `translate_selection = "alt+shift+t"` 并保存；安装更新不会覆盖已有的明确设置。
+Fcitx5 声明为私密的输入框和密码框不会发云请求；Fcitx4 只能识别密码框标记，其他未标记的敏感输入框无法自动识别，使用云联想时请留意。修改 `[predict]` 的开关、地址、模型或密钥会自动切换云服务并撤销旧请求。Linux 暂无云端译词自动补充。
 
 ## 更新和卸载
 
