@@ -115,15 +115,14 @@ page_keys = "-="
 当前预编译包随附含章·通变与含章·知微：优先用通变处理拼音整句与纠错，没有通变时回退到知微。自己的 `.qjm` 也可放入 `~/.local/share/qingjian/models/` 下对应的模型目录。`[model] enabled = false` 可关闭本地模型，见 [本地整句模型](../input/local-model.md)。
 
 `[general] shift_letter = "compose"` 让 Shift 大写字母参与中文组句，默认 `"passthrough"` 保持临时英文输入。
-Linux 支持与 Windows 相同的输入方案：全拼、八套双拼、大千注音、86 版五笔，以及拼音方案与五笔混输。在配置文件的 `[general]` 下设置：
+Linux 支持全拼、八套双拼和大千注音。在配置文件的 `[general]` 下设置：
 
 ```toml
 [general]
-scheme = "pinyin" # 全拼；也可填 xiaohe、ziranma、microsoft、sogou、abc、xiaolang、shoudao、jiajia、zhuyin、none
-wubi = ""        # 填 wubi86 开启五笔
+scheme = "pinyin" # 全拼；也可填 xiaohe、ziranma、microsoft、sogou、abc、xiaolang、shoudao、jiajia、zhuyin
 ```
 
-只用五笔时设 `scheme = "none"`、`wubi = "wubi86"`；拼音与五笔混输时设 `scheme = "pinyin"`、`wubi = "wubi86"`，也可把 `pinyin` 换成双拼或注音方案。保存后约一秒内生效；替换码表文件后需重启服务。安装包自带五笔码表；若要使用自己的码表，把 `词<Tab>编码<Tab>词频` 格式的文件放在 `~/.local/share/qingjian/wubi/wubi86.tsv`，它会优先于随包码表加载。路径使用 `XDG_DATA_HOME` 时随之变化。方案和混输规则见[模糊音与输入方案](../input/fuzzy-and-shuangpin.md)。
+保存后约一秒内生效，方案说明见[模糊音与输入方案](../input/fuzzy-and-shuangpin.md)。
 
 双拼下 `Shift + V` / `Shift + U` 可进入表达式 / 码点输入。
 数字没有对应候选时继续输入，英文直输内容以空格结束时保留空格；英文候选开启后可用数字、翻页键、空格或 Tab 选词。

@@ -1,7 +1,6 @@
 //! 装配 Engine：Server 里唯一知道具体 Translator / Learner 类型的地方，装的东西与 macOS 的 `host::init` 一致。
 
 mod cloud;
-mod code;
 mod language_model;
 mod spec;
 
@@ -17,7 +16,6 @@ use qingjian_translate::{Glossary, LayeredTranslator, LevelTable, PersonalGlossa
 use crate::error::ServerError;
 
 pub use self::cloud::attach_cloud;
-pub use self::code::{configure_code, find_code_table};
 pub use self::language_model::LanguageModelFiles;
 pub use self::spec::AssemblySpec;
 
@@ -89,12 +87,6 @@ pub fn assemble(spec: &AssemblySpec) -> Result<Engine, ServerError> {
             Err(error) => tracing::warn!(%error, "语言模型加载失败，使用词频整句"),
         }
     }
-    configure_code(
-        &mut engine,
-        spec.scheme,
-        spec.wubi,
-        spec.code_table.as_deref(),
-    );
     Ok(engine)
 }
 

@@ -165,7 +165,6 @@ Linux 的 `Tab` 规则：没有组句时 `Tab` / `Shift + Tab` 交给应用；�
 双拼下 `Shift + V` 进入表达式模式，`Shift + U` 可输入码点或问字；入口字母可在 `[shortcut]` 修改，问字需开启云联想。
 大千注音（`[general] scheme = "zhuyin"`）下，数字及 `- ; , . /` 输入符号和声调，空格补一声，再按空格可选词；
 `Enter` 选高亮，`Shift + Enter` 原样输出注音。
-五笔（`[general] wubi = "wubi86"`）下，编码最长四位；`scheme = "none"` 时只用五笔，拼音方案同时开启时两边的候选一起显示。空格和数字键选词，`Enter` 原样输出编码。
 
 Linux 的直接输出译词、删除候选快捷键见上表；安装与配置位置见 [Linux](linux.md)。
 选中应用文字后按 `Alt + Shift + T` 可调用云翻译；Fcitx5 需要应用提供选区，Fcitx4 在 X11 下还可读取当前应用的系统选区。快捷键可用 `[shortcut] translate_selection` 修改。

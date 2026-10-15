@@ -45,9 +45,6 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         english_glossary: assembly::glossary_file(&root, Language::Chinese),
         english: paths::generated(&root, "english.tsv")
             .or_else(|| paths::asset(&root, "sample/english.tsv")),
-        scheme: config.general.scheme(),
-        wubi: config.general.wubi(),
-        code_table: assembly::find_code_table(&user_dir, &root),
         emoji: ["emoji/emoji-zh.tsv", "emoji/emoji-en.tsv"]
             .into_iter()
             .filter_map(|n| paths::asset(&root, n))
@@ -70,7 +67,9 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         }
     };
     engine.set_fuzzy(config.fuzzy);
+    engine.set_shuangpin(config.general.shuangpin());
     engine.set_shuangpin_raw_preedit(config.general.shuangpin_raw_preedit);
+    engine.set_zhuyin_mode(config.general.is_zhuyin());
     engine.set_shift_letter_compose(config.general.shift_letter.compose());
     engine.set_learning(config.general.learning);
     engine.set_chinese_first(config.general.chinese_first);

@@ -2,7 +2,7 @@
 use std::path::PathBuf;
 
 use qingjian_core::Language;
-use qingjian_platform::{DictionariesConfig, Scheme};
+use qingjian_platform::DictionariesConfig;
 
 use super::LanguageModelFiles;
 
@@ -19,15 +19,6 @@ pub struct AssemblySpec {
 
     /// 英文词表。
     pub english: Option<PathBuf>,
-
-    /// 拼音侧方案（全拼、双拼、注音或关）。
-    pub scheme: Scheme,
-
-    /// 是否启用五笔（86 版）。
-    pub wubi: bool,
-
-    /// 用户码表优先，其次是随包码表。
-    pub code_table: Option<PathBuf>,
 
     /// emoji 表（多张合成一张）。
     pub emoji: Vec<PathBuf>,
@@ -61,9 +52,6 @@ impl AssemblySpec {
             glossary: None,
             english_glossary: None,
             english: None,
-            scheme: Scheme::Pinyin,
-            wubi: false,
-            code_table: None,
             emoji: Vec::new(),
             language_model: None,
             bundled_dicts_dir: None,

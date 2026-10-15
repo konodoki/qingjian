@@ -9,7 +9,6 @@ X11 选区备用读取还需要 `libx11-dev` 和 `libxres-dev`。
 Ubuntu 22.04 使用 `fcitx-libs-dev`（Fcitx4 4.2.9.8）、`nlohmann-json3-dev`、OpenSSL 开发包及 Rust 1.96；无需 Fcitx5 或 Qt6。`apps/linux/scripts/install.sh --fcitx4` 编译 Server 和插件，装到用户目录。插件库放在 `<prefix>/lib/fcitx/`，配置放在 `$XDG_CONFIG_HOME/fcitx/addon/`，配置中使用插件绝对路径。输入法图标同时放在 `$XDG_CONFIG_HOME/fcitx/imicon/qingjian.png` 和 `$XDG_DATA_HOME/icons/hicolor/48x48/apps/fcitx-qingjian.png`，分别供经典面板和托盘组件查找；只安装 `qingjian.png` 应用图标时，托盘组件会回退到 Fcitx 图标。默认 Fcitx5 安装流程不变；卸载继续按安装清单清理。
 
 `python3 apps/linux/scripts/files.py` 的哈希读取按块处理，兼容 Ubuntu 22.04 自带的 Python 3.10。安装后需在 Fcitx4 配置中启用「青简」，并手动启动 Server。
-Fcitx4 与 Fcitx5 共用 Server 的 `scheme` / `wubi` 输入方案配置；源码安装自带 `assets/wubi/wubi86.tsv`。用户目录中的 `wubi/wubi86.tsv` 优先，方案配置热加载时重装码表。
 
 ## 框架差异
 

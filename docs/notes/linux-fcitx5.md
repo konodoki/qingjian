@@ -4,7 +4,6 @@ Linux Server 在 `[predict] enabled = true` 且密钥可用时接入共享的 `C
 
 第一阶段保留 Rust Server、薄插件和用户目录安装。输入模式、组句、选词、翻页、隐私和失焦提交均在 Server；
 插件负责 Fcitx 事件与默认预编辑 / 候选 API。长期自绘方向不变，后续由 Server 渲染并管理 X11 窗口，或向 GNOME 扩展发送位图；本阶段不带相关源码、补丁、渲染 FFI、服务管理或 Debian 包。
-Server 按 `[general] scheme` / `wubi` 配置全拼、双拼、注音、五笔与混输；源码安装和预编译包自带五笔码表，用户数据目录的同名码表优先。切换方案由配置热加载应用。
 
 ## 构建与测试
 

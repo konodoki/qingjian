@@ -38,7 +38,6 @@ with tempfile.TemporaryDirectory(prefix='qingjian-install-') as temporary:
         assert header[:8] == b'\x89PNG\r\n\x1a\n'
         width, height = struct.unpack('>II', header[16:24])
         assert (width, height) == (size, size), f'{icon} 实际尺寸 {width}x{height}'
-    assert (prefix / 'share/qingjian/resources/assets/wubi/wubi86.tsv').is_file()
     manifest = json.loads((prefix / 'share/qingjian/install-manifest.json').read_text())
     assert all(Path(filename).is_file() for filename in manifest)
     user = data / 'qingjian/user.tsv'
@@ -54,7 +53,6 @@ with tempfile.TemporaryDirectory(prefix='qingjian-install-') as temporary:
     subprocess.run(['python3', str(helper), 'uninstall', str(prefix)], env=env, check=True)
     assert not addon.exists() and not (prefix / 'bin/qingjian-linux-server').exists()
     assert not desktop.exists() and not (prefix / 'bin/qingjian-settings').exists()
-    assert not (prefix / 'share/qingjian/resources/assets/wubi/wubi86.tsv').exists()
     assert user.read_text() == '学习数据' and other.read_text() == '其他输入法'
     assert modified.read_text() == '用户修改过的样例'
     fcitx4_prefix = directory / 'fcitx4 prefix'

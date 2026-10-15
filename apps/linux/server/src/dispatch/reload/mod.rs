@@ -46,7 +46,6 @@ impl Router {
             applied_dictionaries: config.dictionaries.clone(),
             applied_model: config.model.clone(),
             applied_predict: config.predict.clone(),
-            applied_scheme: (config.general.scheme(), config.general.wubi()),
             applied_language: assembly::learning_language(config),
         };
         reload.dictionary_files = reload.dict_snapshot();
@@ -85,8 +84,10 @@ impl Router {
     /// 应用新配置，项目与 `main.rs` 启动时设的一致。
     fn apply_config(&mut self, config: &Config) {
         self.engine.set_fuzzy(config.fuzzy);
+        self.engine.set_shuangpin(config.general.shuangpin());
         self.engine
             .set_shuangpin_raw_preedit(config.general.shuangpin_raw_preedit);
+        self.engine.set_zhuyin_mode(config.general.is_zhuyin());
         self.engine
             .set_shift_letter_compose(config.general.shift_letter.compose());
         self.engine.set_learning(config.general.learning);
@@ -111,19 +112,6 @@ impl Router {
         let Some(mut reload) = self.reload.take() else {
             return;
         };
-        let scheme = (config.general.scheme(), config.general.wubi());
-        if scheme != reload.applied_scheme {
-            let table = assembly::find_code_table(&reload.user_dir, &reload.root);
-            assembly::configure_code(&mut self.engine, scheme.0, scheme.1, table.as_deref());
-            reload.applied_scheme = scheme;
-            self.end_translation();
-            for session in self.sessions.values_mut() {
-                session.composed = None;
-                session.last_frame = None;
-                session.display_frame = None;
-            }
-            self.recompose(None);
-        }
         if config.predict != reload.applied_predict {
             self.reload_cloud(&config.predict);
             reload.applied_predict = config.predict.clone();
