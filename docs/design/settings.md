@@ -136,6 +136,7 @@ macOS 的切换键是 Caps Lock，由系统决定，所以不显示「切换键�
 | 上屏第二个译词 | 同上 | `shortcut.translation_second` |
 | 删除候选 | 同上 | `shortcut.delete_candidate` |
 | 翻译选中文字 | 按键（组合键） | `shortcut.translate_selection` |
+| 按需 AI 联想（Windows） | 按键（组合键） | `shortcut.predict` |
 
 页底一个「恢复默认」按钮，下面用小字列出组句中固定、不能改的键（空格、1–9、回车、Esc 等），这是全页唯一保留的一段说明文字。
 
@@ -170,6 +171,9 @@ Windows 和 Linux 以前没有这一页，这次都有了。
 |---|---|---|---|
 | 启用 | 开关 | `predict.enabled` | 打字时把光标附近几十个字发给下面的服务，密码框里不发 |
 | 云端词 | 步进 0–4，0 显示「不要」 | `predict.slots` | 补进第一页末尾这几格 |
+| 自动联想（Windows） | 开关 | `predict.automatic` | 关闭后用按需联想快捷键请求 |
+| 停键等待（Windows） | 步进 100–10000 毫秒 | `predict.debounce_ms` | 自动联想关闭时变灰 |
+| 最短请求间隔（Windows） | 步进 1000–60000 毫秒 | `predict.min_interval_ms` | 自动和手动请求共用，缓存复用不联网 |
 | 整句补全 | 开关 | `predict.sentence` | 按 Tab 采用 |
 | 接口地址 | 文本 | `predict.base_url` | |
 | 模型 | 文本 | `predict.model` | |
@@ -248,7 +252,7 @@ Windows 和 Linux 以前没有这一页，这次都有了。
 8. 换掉旧设置程序：新程序装进安装包，输入法菜单「设置…」、Windows 状态条的 ⚙、开始菜单与 Linux 应用菜单的「青简设置」打开它。
    - 安装位置：macOS 是 `Qingjian.app/Contents/Applications/QingjianSettings.app`（独立的 .app，自己的 Dock 图标与名字，`open` 打开；随包数据从外层 `Qingjian.app` 读）；
      Windows 是与 Server 同目录的 `qingjian-settings.exe`（只开一个，第二次启动把已开的带到前台）；Linux 是 `<前缀>/bin/qingjian-settings` 加一个 `.desktop`。
-   - 回退：旧的 macOS 偏好设置（菜单「旧版设置…」）与 Windows 设置程序（`qingjian-settings-legacy.exe`，任务栏「中 / 英」右键菜单「旧版设置…」与开始菜单「青简旧版设置」）留一个版本，下个版本删。
+   - 回退：旧的 macOS 偏好设置（菜单「旧版设置…」）与 Windows 设置程序（`qingjian-settings-legacy.exe`，任务栏「中 / 英」右键菜单「旧版设置…」与开始菜单「青简旧版设置」）保留作兜底；新版设置为主，缺省打开新版。
      新程序打不开时用旧版；某项不生效靠测试拦：`config_keys` 离屏点遍每一页的控件，变了的键用输入法的 `Config` 读回核对。
    - ⓘ 可点：悬停仍是短说明，末尾一行「点一下 ⓘ 打开文档」，点了打开官网文档对应的一段（`docs.rs` 一张表，按页与行标题对到 `docs/user/` 的某个标题，
      锚点照官网的 `headingId` 生成）。测试核对表里每一段在文档里真有这个标题、每一行在那页上真有 ⓘ，文档改标题时测试报错。
