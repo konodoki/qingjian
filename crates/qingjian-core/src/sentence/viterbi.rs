@@ -48,7 +48,8 @@ struct Node {
 /// （调用方保证它与词库、`weight`、`personal`、`cost` 一致，这些一变就清）。
 ///
 /// 简拼位置（`w x q`）按前缀取词：每个格子的候选会多得多，由语言模型在路径上分辨。
-/// 全拼句子末尾的前缀太短时不算它（多半是没打完的音节）；前面已有简拼的句子里末尾单字母就是一个音节。
+/// 全拼句子末尾落单的声母也当前缀读（`youdiandongx` → 有点东西）；落单的单元音（i / u）与短于
+/// 两个字母的其他前缀多半是没打完的韵母，不算它；前面已有简拼的句子里末尾单字母就是一个音节。
 pub fn convert(
     dictionaries: &[&Dictionary],
     positions: &[Vec<SyllablePattern<'_>>],
@@ -144,6 +145,9 @@ pub fn convert_paths(
         || last.complete
         || abbreviated_head
         || last.text.len() >= MIN_PARTIAL_LETTERS
+        // 全拼句末尾落单的声母当简拼音节（`youdiandongx` → 有点东西）；落单的单元音（i / u）
+        // 更可能是没打完的韵母，仍不算它。a / o / e 在切分器里就是完整音节，走不到这里
+        || crate::parser::INITIALS.contains(&last.text)
     {
         positions
     } else {
@@ -474,10 +478,19 @@ mod tests {
         let mut patterns = complete(&["wo", "xiang"]);
         patterns.push(vec![SyllablePattern::prefix("ka")]);
         assert_eq!(unigram(&dictionary, &patterns).unwrap().text, "我想开");
-        // 全拼句子末尾的单字母多半是没打完的音节，不参与
+        // 全拼句末尾落单的声母也当简拼读
         let mut patterns = complete(&["wo", "xiang"]);
         patterns.push(vec![SyllablePattern::prefix("k")]);
-        assert_eq!(unigram(&dictionary, &patterns).unwrap().text, "我想");
+        let conversion = unigram(&dictionary, &patterns).unwrap();
+        assert_eq!(conversion.text, "我想开");
+        assert_eq!(conversion.syllables, ["wo", "xiang", "kai"]);
+        // 落单的单元音仍当作没打完的韵母：词库里有「一 yi」也不读
+        let dictionary = Dictionary::parse(&format!("{SAMPLE}一\tyi\t700000\n")).unwrap();
+        let mut patterns = complete(&["wo", "xiang"]);
+        patterns.push(vec![SyllablePattern::prefix("i")]);
+        let conversion = unigram(&dictionary, &patterns).unwrap();
+        assert_eq!(conversion.text, "我想");
+        assert_eq!(conversion.syllables, ["wo", "xiang"]);
     }
 
     fn abbreviated<'a>(letters: &[&'a str]) -> Vec<Vec<SyllablePattern<'a>>> {

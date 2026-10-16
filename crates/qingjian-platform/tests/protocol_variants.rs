@@ -221,6 +221,29 @@ fn an_old_dll_without_the_protocol_field_still_opens_a_session() {
 }
 
 #[test]
+fn a_frame_without_the_translation_pos_field_still_parses() {
+    // 新增的随帧开关与 aux_code_show 同款：旧端不带这个字段的帧必须照常解出来，
+    // 缺省走普通 bool 缺省（与 Frame::default 一致）；显式给值时以值为准。
+    // 帧的渲染消费者只有 Server 自己的候选窗（DLL 不读该字段），所以缺省值不承担
+    // 「跨版本保持显示」的职责，只要不破坏旧帧解析即可。
+    let mut json = serde_json::to_value(Frame::default()).expect("序列化默认帧");
+    json.as_object_mut()
+        .expect("帧是 JSON 对象")
+        .remove("translation_pos");
+    let frame: Frame = serde_json::from_value(json).expect("缺 translation_pos 的旧帧也该读得出来");
+    assert_eq!(frame.translation_pos, Frame::default().translation_pos);
+
+    for value in [true, false] {
+        let mut json = serde_json::to_value(Frame::default()).expect("序列化默认帧");
+        json.as_object_mut()
+            .expect("帧是 JSON 对象")
+            .insert("translation_pos".to_owned(), serde_json::json!(value));
+        let frame: Frame = serde_json::from_value(json).expect("带字段的帧也该读得出来");
+        assert_eq!(frame.translation_pos, value);
+    }
+}
+
+#[test]
 fn an_unknown_field_is_ignored_rather_than_rejected() {
     // 将来加字段时，新 Server 读旧 DLL 不带新字段的消息、以及反向的兼容，
     // 都靠「未知字段忽略」这条。写死在这里，免得有人哪天给某个变体加了

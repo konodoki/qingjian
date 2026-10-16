@@ -37,11 +37,14 @@ pub enum Scheme {
 
     /// 拼音加加双拼。
     Jiajia,
+
+    /// 紫光双拼。
+    Ziguang,
 }
 
 impl Scheme {
     /// 全部方案，设置界面按这个顺序列出。
-    pub const ALL: [Self; 8] = [
+    pub const ALL: [Self; 9] = [
         Self::Xiaohe,
         Self::Ziranma,
         Self::Microsoft,
@@ -50,6 +53,7 @@ impl Scheme {
         Self::Xiaolang,
         Self::Shoudao,
         Self::Jiajia,
+        Self::Ziguang,
     ];
 
     /// 配置文件里的写法。`const`：设置界面要按方案列表建常量表（见 `qingjian_platform::Scheme`）。
@@ -63,6 +67,7 @@ impl Scheme {
             Self::Xiaolang => "xiaolang",
             Self::Shoudao => "shoudao",
             Self::Jiajia => "jiajia",
+            Self::Ziguang => "ziguang",
         }
     }
 
@@ -77,6 +82,7 @@ impl Scheme {
             Self::Xiaolang => "小浪双拼",
             Self::Shoudao => "首道双拼",
             Self::Jiajia => "拼音加加",
+            Self::Ziguang => "紫光双拼",
         }
     }
 
@@ -90,6 +96,7 @@ impl Scheme {
             Self::Xiaolang => &table::XIAOLANG,
             Self::Shoudao => &table::SHOUDAO,
             Self::Jiajia => &table::JIAJIA,
+            Self::Ziguang => &table::ZIGUANG,
         }
     }
 
@@ -98,7 +105,7 @@ impl Scheme {
         self.table().semicolon
     }
 
-    /// `c` 是不是这套方案的键：小写字母，微软 / 搜狗再加 `;`。
+    /// `c` 是不是这套方案的键：小写字母，微软 / 搜狗 / 紫光再加 `;`。
     pub fn is_key(self, c: char) -> bool {
         c.is_ascii_lowercase() || (c == ';' && self.uses_semicolon())
     }
@@ -446,6 +453,14 @@ mod tests {
             (Scheme::Jiajia, "eq", "er"),
             (Scheme::Jiajia, "er", "en"),
             (Scheme::Jiajia, "op", "ou"),
+            (Scheme::Ziguang, "nihq", "ni'hao"),
+            (Scheme::Ziguang, "uhww", "zhong'wen"),
+            (Scheme::Ziguang, "igpy", "shuang'pin"),
+            (Scheme::Ziguang, "xnxi", "xue'xi"),
+            (Scheme::Ziguang, "iiii", "shi'shi"),
+            (Scheme::Ziguang, "x;x;", "xing'xing"),
+            (Scheme::Ziguang, "nvoj", "nv'er"),
+            (Scheme::Ziguang, "fsor", "fang'an"),
         ];
         for (scheme, keys, expected) in cases {
             assert_eq!(scheme.decode(keys).pinyin(), expected, "{scheme}: {keys}");
@@ -490,6 +505,24 @@ mod tests {
         assert_eq!(Scheme::Jiajia.decode("nx").pinyin(), "nve");
         assert_eq!(Scheme::Jiajia.decode("lx").pinyin(), "lve");
         assert_eq!(Scheme::Jiajia.decode("yx").pinyin(), "yue");
+        // 紫光翘舌声母在 u / a / i，a 与 i 兼作韵母；ing 在 `;`，与微软 / 搜狗同键
+        assert_eq!(Scheme::Ziguang.decode("ui").pinyin(), "zhi");
+        assert_eq!(Scheme::Ziguang.decode("ai").pinyin(), "chi");
+        assert_eq!(Scheme::Ziguang.decode("ii").pinyin(), "shi");
+        assert_eq!(Scheme::Ziguang.decode("uu").pinyin(), "zhu");
+        assert_eq!(Scheme::Ziguang.decode("x;").pinyin(), "xing");
+        assert_eq!(Scheme::Ziguang.decode("y;").pinyin(), "ying");
+        // 紫光零声母只认 o 前缀（`aa` 是 cha、`ii` 是 shi，双写元音不是零声母写法），er 在 oj
+        assert_eq!(Scheme::Ziguang.decode("oa").pinyin(), "a");
+        assert_eq!(Scheme::Ziguang.decode("or").pinyin(), "an");
+        assert_eq!(Scheme::Ziguang.decode("oj").pinyin(), "er");
+        assert_eq!(Scheme::Ziguang.decode("oo").pinyin(), "o");
+        assert_eq!(Scheme::Ziguang.decode("aa").pinyin(), "cha");
+        // 紫光 ü 在 v；üe 与 ue、ui 同在 n（j / q / x / y 后解到 jue 一族）
+        assert_eq!(Scheme::Ziguang.decode("nv").pinyin(), "nv");
+        assert_eq!(Scheme::Ziguang.decode("nn").pinyin(), "nve");
+        assert_eq!(Scheme::Ziguang.decode("jn").pinyin(), "jue");
+        assert_eq!(Scheme::Ziguang.decode("yn").pinyin(), "yue");
     }
 
     #[test]
@@ -514,9 +547,17 @@ mod tests {
         assert_eq!(Scheme::Jiajia.decode("i").pinyin(), "sh");
         assert_eq!(Scheme::Jiajia.decode("v").pinyin(), "zh");
         assert_eq!(Scheme::Jiajia.decode("a").pinyin(), "a");
+        // 紫光落单翘舌键：u 为 zh、a 为 ch、i 为 sh；e、o 是元音前缀
+        assert_eq!(Scheme::Ziguang.decode("u").pinyin(), "zh");
+        assert_eq!(Scheme::Ziguang.decode("a").pinyin(), "ch");
+        assert_eq!(Scheme::Ziguang.decode("i").pinyin(), "sh");
+        assert_eq!(Scheme::Ziguang.decode("e").pinyin(), "e");
+        assert_eq!(Scheme::Ziguang.decode("o").pinyin(), "o");
         // `;` 落单不是任何东西
         assert_eq!(Scheme::Microsoft.decode(";").pinyin(), "");
         assert_eq!(Scheme::Microsoft.decode(";").tail(), ";");
+        assert_eq!(Scheme::Ziguang.decode(";").pinyin(), "");
+        assert_eq!(Scheme::Ziguang.decode(";").tail(), ";");
     }
 
     #[test]
@@ -543,6 +584,7 @@ mod tests {
         assert_eq!("Xiaohe ".parse::<Scheme>().unwrap(), Scheme::Xiaohe);
         assert!("flypy".parse::<Scheme>().is_err());
         assert!(Scheme::Microsoft.uses_semicolon());
+        assert!(Scheme::Ziguang.uses_semicolon());
         assert!(!Scheme::Xiaohe.uses_semicolon());
         assert!(!Scheme::Abc.uses_semicolon());
     }

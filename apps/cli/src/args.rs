@@ -90,7 +90,7 @@ pub struct Args {
     #[arg(long)]
     pub chinese_first: bool,
 
-    /// 双拼方案（xiaohe / ziranma / microsoft / sogou / abc / xiaolang / shoudao / jiajia），覆盖配置里的 [general] shuangpin；off 强制全拼
+    /// 双拼方案（xiaohe / ziranma / microsoft / sogou / abc / xiaolang / shoudao / jiajia / ziguang），覆盖配置里的 [general] shuangpin；off 强制全拼
     #[arg(long)]
     pub shuangpin: Option<String>,
 

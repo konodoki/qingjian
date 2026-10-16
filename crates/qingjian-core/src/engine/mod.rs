@@ -591,5 +591,11 @@ fn abbreviated_count(patterns: &[qingjian_dictionary::SyllablePattern<'_>]) -> u
         .count()
 }
 
+/// 候选读音的学习键：音节无分隔符连起来（`kai fa` → `kaifa`）。
+/// 按输入串记选择时与字面键各记一份，换个打法也认账（见 [`Learner::record_choice`]）。
+fn reading_key<'a>(syllables: impl IntoIterator<Item = &'a str>) -> String {
+    syllables.into_iter().collect()
+}
+
 #[cfg(test)]
 mod tests;

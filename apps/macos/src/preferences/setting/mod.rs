@@ -179,7 +179,7 @@ pub enum Setting {
     /// 第 N 本附加词库的「移除」按钮。
     DictionaryRemove(usize),
 
-    /// `[general] scheme`，弹出菜单：全拼 + 五套双拼 + 大千注音 + 关。
+    /// `[general] scheme`，弹出菜单：全拼 + 九套双拼 + 大千注音 + 关。
     Scheme,
 
     /// `[general] shuangpin_raw_preedit`，勾选框：双拼模式下输入框保留原始输入按键。

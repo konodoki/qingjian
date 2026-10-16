@@ -662,3 +662,48 @@ fn a_long_raw_commit_with_english_in_the_middle_is_not_learned() {
         "只有真正像一个词的才该进个人英文词表"
     );
 }
+
+/// 末位落单声母正好是英文词的最后一个字母时（`henhaobook`），英文词内部换位凑出的残尾拼音
+/// （`book` → `…o/bo/k…`）不得被当成拼写纠正：落单声母进词图后原样多读一个位置，残尾对残尾
+/// 就能靠字频赢过原样，把「拼音头 + 英文词」整条挤掉（很好book 退化成 很好哦伯克）。见 #619。
+#[test]
+fn an_unfinished_correction_does_not_push_the_english_tail_away() {
+    let dictionary = Dictionary::parse(
+        "很好\then hao\t900000\n很\then\t800000\n好\thao\t800000\n\
+         波\tbo\t5000\n哦\to\t100\n口\tkou\t5000\n空\tkong\t5000\n克\tke\t5000\n",
+    )
+    .unwrap();
+    let words = WordList::parse("book\tbook\t5000\n").unwrap();
+    let mut engine = Engine::new(dictionary).with_english(words);
+    engine.set_input("henhaobook");
+    let query = engine.query().unwrap();
+    assert!(query.correction.is_none(), "残尾换位不该触发拼写纠正");
+    assert_eq!(query.candidates.items[0].text, "很好book");
+    assert_eq!(query.candidates.items[0].kind, CandidateKind::Sentence);
+}
+
+#[test]
+fn english_word_is_not_buried_by_reading_key_choices() {
+    // `wenti` 下选的 问题（读音键记了一份）不能隔着 `went` 把英文词顶下去：
+    // 英文位置的仲裁按字面键数，读音键泛化只服务中文自己的重打排序
+    let dictionary = Dictionary::parse("问题\twen ti\t900000\n").unwrap();
+    let words = WordList::parse("went\twent\t2000\n").unwrap();
+    let mut engine = Engine::new(dictionary)
+        .with_english(words)
+        .with_learner(Box::new(CountingLearner(HashMap::new())));
+    let commit = |engine: &mut Engine, input: &str, text: &str| {
+        engine.set_input(input);
+        let candidate = engine
+            .query()
+            .unwrap()
+            .candidates
+            .items
+            .into_iter()
+            .find(|c| c.text == text)
+            .unwrap();
+        engine.commit(&candidate);
+    };
+    commit(&mut engine, "wenti", "问题");
+    engine.set_input("went");
+    assert_eq!(texts_of(&engine)[0], "went");
+}

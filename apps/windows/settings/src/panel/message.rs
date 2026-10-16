@@ -8,6 +8,8 @@ pub(crate) enum Message {
 
     // 通用页
     LearningLanguage(Option<usize>),
+    /// 译词旁是否显示词性标注（`[general] translation_pos`）。
+    TranslationPos(bool),
     PageSize(Option<f64>),
     Scheme(Option<usize>),
     ShuangpinRawPreedit(bool),
@@ -40,6 +42,8 @@ pub(crate) enum Message {
     Appearance(Option<usize>),
     Theme(Option<usize>),
     Layout(Option<usize>),
+    /// 横排时 ↑ / ↓ 把单行展开成多行矩阵。
+    HorizontalGrid(bool),
     Preedit(Option<usize>),
     Renderer(Option<usize>),
     /// 字体框里的文字变了：空或正好是某个字族名就落盘。

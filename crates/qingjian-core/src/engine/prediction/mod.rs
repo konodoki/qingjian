@@ -373,6 +373,7 @@ impl Engine {
             tail: traditional_text.chars().last(),
             input,
             chosen: None,
+            choice: None,
             transitions: std::mem::take(&mut self.recording),
             typos: Vec::new(),
             erased: 0,

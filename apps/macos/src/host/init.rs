@@ -155,6 +155,7 @@ pub fn init(mtm: MainThreadMarker, info: &BundleInfo) -> Result<(), HostError> {
             preedit_mode: PreeditMode::default(),
             layout: LayoutMode::default(),
             horizontal_grid: false,
+            highlight_keys: HighlightKeys::default(),
             english_candidates: true,
             text_replacements: Vec::new(),
             apps: AppsConfig::default(),

@@ -82,9 +82,9 @@ impl Feature {
             Self::AutoSpace => [Yes, Todo, Todo],
             // macOS 看菜单栏图标，Linux 看 Fcitx5 的托盘
             Self::StatusBar => [No, Yes, No],
-            Self::HorizontalGrid => [Yes, Todo, Todo],
+            Self::HorizontalGrid => [Yes, Yes, Todo],
             Self::ExtraPageKeys => [Todo, Yes, Todo],
-            Self::HighlightKeys => [Todo, Yes, Todo],
+            Self::HighlightKeys => [Yes, Yes, Todo],
             Self::TogglePunctuation => [Todo, Yes, Todo],
             // 系统的文本替换只有 macOS 有
             Self::SystemTextReplacements => [Yes, No, No],

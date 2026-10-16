@@ -14,6 +14,7 @@ fn umlaut_keys_decode_to_standard_pinyin() {
         (Scheme::Shoudao, 'v'),
         (Scheme::Xiaolang, 'x'),
         (Scheme::Jiajia, 'v'),
+        (Scheme::Ziguang, 'v'),
     ] {
         for (initial, expected) in [('j', "ju"), ('q', "qu"), ('x', "xu"), ('y', "yu")] {
             let keys = format!("{initial}{key}");

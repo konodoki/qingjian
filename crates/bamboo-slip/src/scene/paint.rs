@@ -187,6 +187,10 @@ impl Scene {
             let right = extent.right.ceil().min(canvas.width() as f32);
             let bottom = extent.bottom.ceil().min(canvas.height() as f32);
             if right <= left || bottom <= top {
+                // 分段模式下照样走一遍取号：探测用 1×1 画布，这里跳过会让后面的节点与分段时编号错开
+                if self.split.borrow().is_some() {
+                    self.paint_subtree(root, &mut Canvas::new(1, 1)?, text, x, y)?;
+                }
                 return Ok(());
             }
             let mut layer = Canvas::new((right - left) as u32, (bottom - top) as u32)?;

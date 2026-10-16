@@ -7,6 +7,7 @@ mod context;
 mod frame;
 mod layout_style;
 mod leaf;
+mod matrix;
 mod row;
 
 use bamboo_slip::taffy::NodeId;

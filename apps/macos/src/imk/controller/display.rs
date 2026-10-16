@@ -1,6 +1,7 @@
 //! 查询与呈现：刷新候选、画候选窗、整句补全、翻页与高亮。
 
 use super::*;
+use qingjian_platform::HighlightKeys;
 
 impl QingjianInputController {
     /// 按当前缓冲区重新查候选、更新 marked text，回到第一页并重画候选窗口。
@@ -137,13 +138,21 @@ impl QingjianInputController {
     }
 
     /// 上下键。高亮逐个移动，越过页边自动翻页；横排矩阵开着（`[general] horizontal_grid`）时改为：
-    /// 单行先展开成矩阵，在矩阵里换行（视口跟着滚）。
+    /// 单行先展开成矩阵，在矩阵里换行（视口跟着滚）。高亮移动键选了 `←` / `→` 时上下键不动（键照样吃掉，不漏给应用挪插入符）。
     pub(super) fn move_highlight(&self, delta: isize, client: TextClient<'_>) {
         let changed = host::with(|h| {
             if h.grid_keys() {
-                h.session.move_rows(delta)
-            } else {
+                let moved = h.session.move_rows(delta);
+                // ↑ 顶在第一排再往上：回到第一个候选（不是毫无动作）
+                if !moved && delta < 0 {
+                    h.session.jump_to_first()
+                } else {
+                    moved
+                }
+            } else if h.highlight_keys == HighlightKeys::UpDown {
                 h.session.move_highlight(delta)
+            } else {
+                false
             }
         })
         .unwrap_or(false);
@@ -152,11 +161,24 @@ impl QingjianInputController {
         }
     }
 
-    /// 左右键。横排矩阵开着而且有候选时归候选：单行里逐个移动高亮（到页边自动翻页，不展开），展开后按阅读顺序跨行移动——
-    /// 上下键被矩阵占了，单行里只剩左右键能挪高亮。返回是不是归了候选（不是的话调用方照旧移动拼音光标）。
+    /// 左右键。横排矩阵开着、或高亮移动键选了 `←` / `→`，而且有候选时归候选：单行里逐个移动高亮（到页边自动翻页，不展开），展开后按阅读顺序跨行移动——
+    /// 上下键被矩阵占了，单行里只剩左右键能挪高亮。规则与 Windows 壳的 `horizontal_key` 一致（把「拼音行 + 候选栏」当成
+    /// 一条从左到右的序列走）：`→` 先走光标、到末位溢出成选词；`←` 先退候选、顶在第一个候选上回拼音行。
+    /// 返回是不是归了候选（不是的话调用方照旧移动拼音光标）。
     pub(super) fn move_cells(&self, delta: isize, client: TextClient<'_>) -> bool {
         let handled = host::with(|h| {
-            if !h.grid_keys() || h.session.layout.is_empty() {
+            if !h.arrows_move_cells() || h.session.layout.is_empty() {
+                return None;
+            }
+            // 拼音光标已经离开末尾（正在改拼音）：→ 继续归光标
+            if delta > 0 {
+                let composition = h.engine.composition();
+                if composition.cursor() < composition.text().len() {
+                    return None;
+                }
+            }
+            // 顶在第一个候选上：交还拼音光标（去改已输入的拼音）
+            if delta < 0 && h.session.highlighted == 0 {
                 return None;
             }
             Some(if h.session.grid.is_some() {

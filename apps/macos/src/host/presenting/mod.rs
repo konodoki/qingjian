@@ -69,10 +69,14 @@ impl Host {
         }
     }
 
-    /// 横排矩阵这套按键是否生效：开关开着（`[general] horizontal_grid`）、排布是横排，而且在用系统绘制。
-    /// 青简渲染器还没有矩阵窗口，用它时不展开，横排照单行走（见 `docs/notes/crate-notes.md`）。
+    /// 横排矩阵这套按键是否生效：开关开着（`[general] horizontal_grid`）、排布是横排。
     pub fn grid_keys(&self) -> bool {
-        self.horizontal_grid && self.layout == LayoutMode::Horizontal && !self.window.uses_bitmap()
+        self.horizontal_grid && self.layout == LayoutMode::Horizontal
+    }
+
+    /// `←` / `→` 归候选：横排矩阵开着，或高亮移动键选了 `←` / `→`。
+    pub fn arrows_move_cells(&self) -> bool {
+        self.grid_keys() || self.highlight_keys == HighlightKeys::LeftRight
     }
 
     /// 新一轮候选：每页格数取配置与窗口能画的行数中较小者，云端槽位数取配置。

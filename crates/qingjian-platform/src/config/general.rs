@@ -31,6 +31,10 @@ pub struct GeneralConfig {
     /// 学习语言（ISO 639-1，`en` / `ja` / `es` / `vi` / `de`；`off` 不显示译文）：候选旁显示哪种语言的译文。要有对应的释义表文件才生效。
     pub learning_language: String,
 
+    /// 译词旁是否显示词性标注（v. / n. / adj. / phr. 等，`开发` → v. develop）。缺省开：关掉只留译词。
+    /// 译文整体关掉（[`Self::learning_language`] 为 `off`）时此项无效果。
+    pub translation_pos: bool,
+
     /// 每页候选数，1–9。
     pub page_size: usize,
 
@@ -48,7 +52,7 @@ pub struct GeneralConfig {
     /// 候选窗口竖排 / 横排。
     pub layout: LayoutMode,
 
-    /// 横排时上 / 下键把单行展开成多行矩阵（左 / 右键改为移动候选高亮，Esc 第一下先收回）。缺省关：横排下的按键与以前一样。只有 macOS 用。
+    /// 横排时上 / 下键把单行展开成多行矩阵（左 / 右键改为移动候选高亮，Esc 第一下先收回）。缺省关：横排下的按键与以前一样。
     pub horizontal_grid: bool,
 
     /// 候选窗口由青简渲染器还是系统原生绘制。
@@ -127,7 +131,7 @@ pub struct GeneralConfig {
     pub aux_code_keep_empty: bool,
 
     /// 拼音侧方案：`pinyin`（全拼，缺省）/ `xiaohe` / `ziranma` / `microsoft` / `sogou` / `abc` / `xiaolang` / `shoudao`
-    /// / `jiajia` / `zhuyin`
+    /// / `jiajia` / `ziguang` / `zhuyin`
     /// / `none`（关，只用形码），见 [`Scheme`]。用不认识的写法时按全拼并警告。
     /// 缺省是空串：文件里没写这一项时要去看旧键，见 [`Self::scheme`]。
     pub scheme: String,
@@ -175,6 +179,7 @@ impl Default for GeneralConfig {
     fn default() -> Self {
         Self {
             learning_language: "en".to_owned(),
+            translation_pos: true,
             page_size: MAX_PAGE_SIZE,
             page_keys: PAGE_KEY_OPTIONS[0].to_owned(),
             appearance: Some(Appearance::default()),
@@ -424,6 +429,16 @@ mod tests {
     #[test]
     fn aux_code_keep_empty_defaults_on() {
         assert!(GeneralConfig::default().aux_code_keep_empty);
+    }
+
+    /// 词性标注缺省开（旧配置文件没这一项时行为不变），显式写 false 才关。
+    #[test]
+    fn translation_pos_defaults_on() {
+        assert!(GeneralConfig::default().translation_pos);
+        let general: GeneralConfig = toml::from_str("").unwrap();
+        assert!(general.translation_pos);
+        let general: GeneralConfig = toml::from_str("translation_pos = false\n").unwrap();
+        assert!(!general.translation_pos);
     }
 
     #[test]

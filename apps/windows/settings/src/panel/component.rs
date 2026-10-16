@@ -54,6 +54,7 @@ impl Component for Settings {
             Message::LearningLanguage(Some(i)) if i < general::LANGUAGES.len() => {
                 self.save("general", "learning_language", general::LANGUAGES[i].1);
             }
+            Message::TranslationPos(on) => self.save("general", "translation_pos", on),
             Message::PageSize(Some(value)) => {
                 let size = (value.round() as i64).clamp(1, 9);
                 self.save("general", "page_size", size);
@@ -126,6 +127,9 @@ impl Component for Settings {
             }
             Message::Layout(Some(i)) if i < LayoutMode::ALL.len() => {
                 self.save("general", "layout", LayoutMode::ALL[i].key());
+            }
+            Message::HorizontalGrid(on) => {
+                self.save("general", "horizontal_grid", on);
             }
             Message::Preedit(Some(i)) if i < PreeditMode::ALL.len() => {
                 self.save("general", "preedit", PreeditMode::ALL[i].key());

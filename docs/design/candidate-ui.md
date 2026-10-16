@@ -17,15 +17,16 @@
 4  计算器                  calculator
 ```
 
-横排可以展开成矩阵（2026-09-20，macOS；Windows 未接；开关 `[general] horizontal_grid`，缺省关——它改了上 / 下、左 / 右、Esc 这几个已有按键的行为，
+横排可以展开成矩阵（2026-09-20 macOS，2026-10-05 Windows；开关 `[general] horizontal_grid`，缺省关——它改了上 / 下、左 / 右、Esc 这几个已有按键的行为，
 不是每个人都要，关着时横排下所有按键与以前一样，改完立刻生效并收回单行）：单行时按上 / 下键立即展开并换行，矩阵是固定 6 行的视口（`GRID_ROWS`），
-一行就是一页候选，高亮移出视口上下边缘时按行滚动，翻页键一次翻一屏；左 / 右键在候选之间移动高亮（单行里逐个移动、到页边自动翻页但不展开，展开后按阅读顺序跨行；上 / 下键被矩阵占了，单行里只剩它们能挪高亮；拼音光标用 ⌥ / ⌘ + 左右），
+一行就是一页候选，高亮移出视口上下边缘时按行滚动，翻页键一次翻一屏；左 / 右键在候选之间移动高亮（单行里逐个移动、到页边自动翻页但不展开，展开后按阅读顺序跨行；上 / 下键被矩阵占了，单行里只剩它们能挪高亮），
+规则与 Windows「高亮移动键」选 `←` / `→` 时相同（两平台一致）：`→` 先走拼音光标、到末位溢出成选词，`←` 先退候选、顶在第一个候选上回拼音行，光标离开末尾期间 `←` / `→` 都归光标；矩阵里第一排再按 `↑` 回到第一个候选，
 数字键选高亮所在那一行，序号也只标在那一行；新一轮查询或 Esc 收回单行。视口与移动规则在 Core `candidate::layout::Grid`（展示规则，各壳共用），
 壳只转发方向键、把视口里的格子按行优先排进帧（`Frame::columns` 不为 0 即矩阵）。窗口尺寸在一轮查询里不变：
 各列宽度由 Core 按**整份**候选估（`Grid::column_ems`：汉字一个字宽、拉丁字母 0.62、云朵另加，单格封顶 `MAX_CELL_EMS` = 4 个字宽，
 四字词能完整显示），不按视口里可见的几行实测，所以滚动、移动高亮时列宽不变；超出的候选截尾加「…」，高亮到它时网格下方的信息行给出完整文本和译文，
 页码在信息行末尾，信息行放不下的同样截断，不撑开窗口；信息行始终保留，在靠后的页展开时视口往上补齐 6 行。9 列时网格最宽约 756 pt。
-第一版按视口实测列宽、单格 6 个字宽，滚一行窗口就跳一下，最宽能到 1100 pt。两条绘制路径（`qingjian-render` 的 `renderer/matrix.rs`、系统绘制的 `view/matrix.rs`）同一套规则。
+第一版按视口实测列宽、单格 6 个字宽，滚一行窗口就跳一下，最宽能到 1100 pt。两条系统绘制路径（macOS 的 `view/matrix.rs`、Windows GDI 的 `candidates/view.rs`）同一套规则；青简渲染器（`qingjian-render` 的 `renderer/build/matrix.rs`）列宽与截尾相同，没有单独的信息行，高亮候选的译文由主题决定画不画，见 `docs/notes/crate-notes.md`。
 
 横排时候选排成一行，只给高亮的那个在下面单独一行显示译文（每个都带译文会把窗口拉得很宽），页码在行尾：
 
@@ -189,14 +190,14 @@ CLI 用 `--fuzzy z-zh,n-l` 或 `--fuzzy all` 临时开。
 
 ### 双拼（默认关，`[general] shuangpin`）
 
-八套方案：小鹤（`xiaohe`）、自然码（`ziranma`）、微软（`microsoft`）、搜狗（`sogou`）、智能ABC（`abc`）、小浪（`xiaolang`）、首道（`shoudao`）、拼音加加（`jiajia`）。键位表在 Core `shuangpin::table`，
-按 Rime 的 `double_pinyin*.schema.yaml` 核对（搜狗来自 rime-ice 的整理，小浪来自用户提供的搜狗小浪双拼与 Rime 配置，智能ABC 按公开键位资料核对，首道按作者仓库 shoudaoshuangpin/shoudaoshouyouplus 的键位图、并与万象拼音的拼写运算对过，拼音加加以 Rime `double_pinyin_pyjj.schema.yaml`、fcitx5 libime `PinyinJiajia` 与公开键位图三方核对），每套方案对全部音节做往返测试；微软与搜狗只差微软的 `v` 键兼作 üe。
+九套方案：小鹤（`xiaohe`）、自然码（`ziranma`）、微软（`microsoft`）、搜狗（`sogou`）、智能ABC（`abc`）、小浪（`xiaolang`）、首道（`shoudao`）、拼音加加（`jiajia`）、紫光（`ziguang`）。键位表在 Core `shuangpin::table`，
+按 Rime 的 `double_pinyin*.schema.yaml` 核对（搜狗来自 rime-ice 的整理，小浪来自用户提供的搜狗小浪双拼与 Rime 配置，智能ABC 按公开键位资料核对，首道按作者仓库 shoudaoshuangpin/shoudaoshouyouplus 的键位图、并与万象拼音的拼写运算对过，拼音加加以 Rime `double_pinyin_pyjj.schema.yaml`、fcitx5 libime `PinyinJiajia` 与公开键位图三方核对，紫光以 fcitx5 libime 的 `SPMap_C_Ziguang` / `SPMap_S_Ziguang`、InputKing 的 ZiGuang 键位图与双拼练习平台（BlueSky）的 `ziguang.js` 三方核对），每套方案对全部音节做往返测试；微软与搜狗只差微软的 `v` 键兼作 üe，紫光的 `;` 与微软 / 搜狗同键位。
 开着时缓冲区里存的仍是敲的键，Engine 在切分前把键两两配对解成全拼（音节之间自动带 `'`，没有切分歧义），
 之后查词、整句、云联想、学习全部走全拼那一套：拼音行显示解出来的全拼（`nihc` → `ni'hao`），学习按全拼记（`user-choices.tsv` 的键与全拼共用，切回全拼也受益），
 上屏消耗按「候选盖住几个音节、每个音节几个键」换算回缓冲区（`kdfave` 选 开发 吃掉 4 个键，剩 `ve`）。
 末尾落单的一键当声母 / 元音前缀出简拼候选（`kdf` → kai f…）；配不出音节的键起原样留作尾巴（`nibl` → `ni'bl`）。
-零声母：小鹤 / 自然码写 `aa` `ai` `ah`（a、ai、ang）一族，微软 / 搜狗写 `o` + 韵母键（`oa` `ol` `oh`），双写元音的写法也认。智能ABC 只认 `o` + 韵母键，`aa` / `ee` 解为 zha / che。
-微软 / 搜狗的 `;` 是 ing：组句中末尾有落单声母时敲 `;` 进缓冲区（`x;` → xing），其他时候仍是标点，壳问 `Engine::takes_semicolon`。
+零声母：小鹤 / 自然码写 `aa` `ai` `ah`（a、ai、ang）一族，微软 / 搜狗写 `o` + 韵母键（`oa` `ol` `oh`），双写元音的写法也认。智能ABC 只认 `o` + 韵母键，`aa` / `ee` 解为 zha / che；紫光同样只认 `o` + 韵母键，`aa` / `ii` 解为 cha / shi。
+微软 / 搜狗 / 紫光的 `;` 是 ing：组句中末尾有落单声母时敲 `;` 进缓冲区（`x;` → xing），其他时候仍是标点，壳问 `Engine::takes_semicolon`。
 
 双拼下 v / u / i 都是音节键，模式键换成对应的大写字母（`ModeKeys::shifted`，搜狗 / 微软双拼的做法）：中文模式、没在组句时 `Shift`+`V` / `Shift`+`U` 进表达式 / 问字，
 缓冲区里存的就是大写前缀（`V1+2`、`Unihc`），之后与全拼下的 `v` / `u` 同路；壳问 `Engine::takes_mode_letter`。Windows 的 DLL 不知道双拼开没开，`Shift`+`V` / `U` / `I` 一律送 Server，全拼下 Server 回放行、由 DLL 自己插入。拼写纠错停用：敲错一键换掉的是整个声母 / 韵母，

@@ -155,11 +155,6 @@ impl CandidateWindow {
         self.view.set_panel_mouse_handler(handler);
     }
 
-    /// 在用青简渲染器（而不是系统绘制）。
-    pub fn uses_bitmap(&self) -> bool {
-        self.view.uses_bitmap()
-    }
-
     /// 渲染器主题（按 `[general] theme` 从主题库取出的），只对青简渲染器生效。
     pub fn set_render_theme(&self, theme: qingjian_render::Theme) {
         self.view.set_render_theme(theme);

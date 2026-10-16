@@ -29,6 +29,9 @@ pub struct RouterConfig {
     /// 候选排布（`[general] layout`）。
     pub layout: LayoutMode,
 
+    /// 横排时上 / 下键把单行展开成多行矩阵（`[general] horizontal_grid`）。
+    pub horizontal_grid: bool,
+
     /// 候选窗口外观（`[general] appearance`，兼容旧写法见 [`qingjian_platform::GeneralConfig::appearance`]）。
     pub appearance: Appearance,
 
@@ -129,12 +132,20 @@ pub struct RouterConfig {
 
     /// 候选上是否显示辅码（`[general] aux_code_show`）。随帧下发给候选窗。
     pub aux_code_show: bool,
+
+    /// 译词旁是否显示词性标注（`[general] translation_pos`）。随帧下发给候选窗。
+    pub translation_pos: bool,
 }
 
 impl RouterConfig {
     /// 全局开关开着，且应用在 `[apps] english_candidates_on` 白名单里；没报应用名按不给。
     pub fn english_candidates_in(&self, app: Option<&str>) -> bool {
         self.english_candidates && self.apps.english_candidates_on(app)
+    }
+
+    /// 横排矩阵这套按键是否生效：开关开着（`[general] horizontal_grid`）而且排布是横排。
+    pub fn grid_keys(&self) -> bool {
+        self.horizontal_grid && self.layout == LayoutMode::Horizontal
     }
 
     /// 交给 UI 线程的画法。
@@ -159,6 +170,7 @@ impl From<&Config> for RouterConfig {
             sentence_translation: config.predict.sentence_translation,
             shift_letter_compose: config.general.shift_letter.compose(),
             layout: config.general.layout,
+            horizontal_grid: config.general.horizontal_grid,
             appearance: config.general.appearance(),
             renderer: config.general.renderer,
             font: config.general.font.trim().to_owned(),
@@ -198,6 +210,7 @@ impl From<&Config> for RouterConfig {
             traditional: config.general.traditional() != TraditionalVariant::Off,
             aux_code_key: config.general.aux_code_key(),
             aux_code_show: config.general.aux_code_show,
+            translation_pos: config.general.translation_pos,
         }
     }
 }
